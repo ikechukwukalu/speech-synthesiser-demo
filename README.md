@@ -67,7 +67,7 @@
             var synth = window.speechSynthesis;
             var utterThis = new SpeechSynthesisUtterance(textToSpeak);
 
-            // voices[2] for Google UK English Female
+            // voices[2] for Google UK English Female on Chrome
             utterThis.voice = voices[2];
             utterThis.pitch = 1; // 1 to 2
             utterThis.rate = 1; // 1 to 2
