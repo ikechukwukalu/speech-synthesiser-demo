@@ -40,6 +40,7 @@
         </p>
     </div>
     <script>
+        var handle = 0;
         function pauseSpeechText() {
             window.speechSynthesis.pause();
         }
@@ -71,20 +72,26 @@
             utterThis.rate = 1; // 1 to 2
             utterThis.volume = 1; // 0 to 1
             synth.speak(utterThis);
-
-            utterThis.onpause = function (event) {
-                var char = event.utterance.text.charAt(event.charIndex);
-                console.log('Speech paused at character ' + event.charIndex + ' of "' +
-                    event.utterance.text + '", which is "' + char + '".');
+            
+            utterThis.onstart = function (event) {
+                setBugFix();
             }
 
-            var handle = setInterval(() => {
-                apiBugFix();
-            }, 10000);
+            utterThis.onresume = function (event) {
+                setBugFix();
+            }
 
-            utterThis.onend = function () {
-                clearInterval(handle);
-                handle = 0;
+            utterThis.onpause = function (event) {
+                stopBugFix();
+            }
+
+            utterThis.onend = function (event) {
+                stopBugFix();
+            }
+
+            utterThis.onerror = function (event) {
+                stopBugFix();
+                alert("Opps, something went wrong !!!");
             }
         }
 
@@ -100,6 +107,16 @@
             return txt;
         }
 
+        function setBugFix() {
+            handle = setInterval(() => {
+                apiBugFix();
+            }, 10000);
+        }
+        
+        function stopBugFix() {
+            clearInterval(handle);
+            handle = 0;
+        }
     </script>
 </body>
 
