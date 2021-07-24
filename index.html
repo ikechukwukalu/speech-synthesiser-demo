@@ -42,7 +42,7 @@
         </div>
         <p>
         <div class="btn-group">
-            <button type="button" class="btn btn-success btn-lg" onclick="playSpeechText()">Play</button>
+            <button type="button" class="btn btn-success btn-lg" onclick="speakResponse()">Play</button>
             <button type="button" class="btn btn-warning btn-lg" onclick="pauseSpeechText()">Pause</button>
             <button type="button" class="btn btn-primary btn-lg" onclick="resumeSpeechText()">Resume</button>
             <button type="button" class="btn btn-danger btn-lg" onclick="cancelSpeechText()">Stop</button>
@@ -50,7 +50,8 @@
         </p>
     </div>
     <script>
-        var handle = 0;
+        var handleSpeech = 0;
+
         function pauseSpeechText() {
             window.speechSynthesis.pause();
             removeBugFix();
@@ -71,42 +72,54 @@
         }
 
         function playSpeechText() {
-            cancelSpeechText();
-            var elementTxt = document.querySelector('.txt');
-            var textToSpeak = getElementsText(elementTxt);
+            var voices = window.speechSynthesis.getVoices();
             var voices = [];
-            var synth = window.speechSynthesis;
-            var utterThis = new SpeechSynthesisUtterance(textToSpeak);
+            var utterThis = new SpeechSynthesisUtterance();
 
             // voices[2] for Google UK English Female on Chrome
             utterThis.voice = voices[2];
             utterThis.pitch = 1; // 1 to 2
             utterThis.rate = 1; // 1 to 2
             utterThis.volume = 1; // 0 to 1
-            synth.speak(utterThis);
-
-            utterThis.onstart = function (event) {
+            utterThis.onstart = function(event) {
                 applyBugFix();
+                console.log("started");
+            };
+            utterThis.onend = function(event) {
+                removeBugFix();
+                console.log('Finished in ' + event.elapsedTime + ' seconds.');
+            };
+            utterThis.onerror = function(event) {
+                removeBugFix();
+                console.log('Errored ' + event);
+            }
+            utterThis.onpause = function(event) {
+                console.log('Paused ' + event);
+
+            }
+            utterThis.onresume = function(event) {
+                console.log('Resumed ' + event);
+
+            }
+            utterThis.onboundary = function(event) {
+                console.log('onboundary ' + event);
             }
 
-            /**
-            * utterThis.onresume and utterThis.onpause were buggy as at 24/07/2021 when I implemented this
-            */
-            // utterThis.onresume = function (event) {
-            //     applyBugFix();
-            // }
+            return utterThis;
+        }
 
-            // utterThis.onpause = function (event) {
-            //     removeBugFix();
-            // }
+        function speakResponse() {
+            cancelSpeechText() // if it errors, this clears out the error.
+            var elementTxt = document.querySelector('.txt');
+            var text = getElementsText(elementTxt);
 
-            utterThis.onend = function (event) {
-                removeBugFix();
-            }
-
-            utterThis.onerror = function (event) {
-                removeBugFix();
-                alert("Opps, something went wrong !!!");
+            var sentences = text.split(".");
+            for (var i = 0; i < sentences.length; i++) {
+                if(sentences[i].trim().length > 1) {
+                    var toSay = playSpeechText();
+                    toSay.text = sentences[i];
+                    window.speechSynthesis.speak(toSay);
+                }
             }
         }
 
@@ -115,7 +128,7 @@
             var txt = "";
             for (let i = 0; i < kids.length; i++) {
                 if (kids[i].nodeType === Node.TEXT_NODE)
-                    txt += kids[i].textContent;
+                    txt += (kids[i].textContent).trim();
                 else
                     txt += getElementsText(kids[i]);
             }
@@ -123,14 +136,14 @@
         }
 
         function applyBugFix() {
-            handle = setInterval(() => {
+            handleSpeech = setInterval(() => {
                 apiBugFix();
             }, 10000);
         }
 
         function removeBugFix() {
-            clearInterval(handle);
-            handle = 0;
+            clearInterval(handleSpeech);
+            handleSpeech = 0;
         }
     </script>
 </body>
