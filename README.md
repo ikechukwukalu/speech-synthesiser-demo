@@ -61,7 +61,6 @@
         function playSpeechText() {
             cancelSpeechText();
             var elementTxt = document.querySelector('.txt');
-            console.log(getElementsText(elementTxt));
             var textToSpeak = getElementsText(elementTxt);
             var voices = [];
             var synth = window.speechSynthesis;
